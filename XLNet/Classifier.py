@@ -17,6 +17,11 @@ import torch.nn.functional as F
 import sys
 
 
+def _3_fold_cv():
+    return train_set, test_set
+
+def _5_fold_cv():
+    return train_set, test_set
 
 def Load_data(dataset):
     return 0
