@@ -1,0 +1,91 @@
+===================================================
+eDiseases Dataset README - v2.0 - November 5th, 2018
+===================================================
+
+This package contains the dataset generated in the research published in the paper:
+
+"Jorge Carrillo-de-Albornoz, Javier Rodríguez-Vidal, and Laura Plaza. 2018. Feature Engineering for Sentiment Analysis in e-Health Forums. PLOS ONE."
+
+The dataset is available for research purpose.
+
+This README file contains: 
+
+1) A brief description of the corpus
+2) A description of the contents of each directory in this package.
+
+
+==========================
+1. The eDisease Dataset
+==========================
+
+The eDiseases dataset contains patient data from the MedHelp health site (http://www.medhelp.org/), where different communities share information and opinions about diseases. Each community consists of a number of conversations; a conversation being a sequence of comments posted by patients.
+
+To build the dataset, we automatically extracted 10 conversations from each of the following three communities: allergies, crohn and breast cancer. We selected a set of diseases that, according to medical expert, show high heterogeneity concerning both the degree of medical understanding of the diseases and the profile of the users. The conversations were selected randomly, but we automatically filtered out conversations with less than 10 posts. In total, we extracted 146 posts for allergies, 191 posts for crohn, and 142 posts for breast cancer; which include 983 sentences for allergies, 1780 sentences for crohn, and 1029 sentences for breast cancer, covering a 6 years time interval. Three frequent users of health forums annotated each sentence in the dataset as:
+
+Factuality: OPINION, FACT, EXPERIENCE.
+Polarity: POSITIVE, NEUTRAL, NEGATIVE.
+
+In case of doubt, the annotators labeled the sentence as NOT_LABELED. As a result, we collected 967 labeled sentences for allergies, 1,709 labeled sentences 294
+for crohn, and 959 labeled sentences for breast cancer.
+
+Please see the paper for further details.
+
+==============================================
+2. Description of the contents of this package
+==============================================
+
+./diseases:
+-----------
+./entities/diseases.tsv: 
+-----------------------------------
+
+   Tab-separated and quoted values file that includes information associated to the diseases of the dataset. The columns corresponds to:
+
+     - “disease_id”: Id of the disease (e.g. HIF2016_DIS00)
+     - “name”: Complete name of the disease (e.g. CROHN'S DISEASE)
+
+
+./conversations:
+-----------
+
+    This directory includes the information needed to crawl the annotated sentences in the dataset, and obtain the conversations. Each .tsv file corresponds to a disease and includes the following information, separated by tabs and quoted:
+
+     -”conversation_id”: Id of the conversation.
+     -”disease_id”: Id of the disease. 
+	 -”title”: Title of the conversation.
+     -”url”: Url of the crawled conversation.   
+
+ 
+./posts:
+-----------
+
+    This directory includes the information needed to crawl the annotated sentences in the dataset, and obtain the post. Each .tsv file corresponds to a disease and includes the following information, separated by tabs and quoted:
+
+     -”post_id”: Id of the post.
+	 -”conversation_id”: Id of the conversation.
+     -”disease_id”: Id of the disease. 
+	 -”author”: Author name of the post.
+     -”num_stars”: Number of stars assigned to the post.   
+	 -”timestamp”: Date of the post in millisecond.   
+	 -”in_reply_to”: Name of the author of the post that the actual post reply.    
+	 -”is_primary_question”: Boolean that is true if the sentence belongs to the first post in a conversation, and false otherwise.   
+	 -”num_replies”: The number of replies to the post.   
+
+./sentences:
+-----------
+
+    This directory includes the information needed to crawl the annotated sentences in the dataset. Each .tsv file corresponds to a disease and includes the following information, separated by tabs and quoted:
+
+     -”sentence_id”: Id of the sentnece.
+	 -”post_id”: Id of the post.
+	 -”conversation_id”: Id of the conversation.
+     -”disease_id”: Id of the disease. 
+	 -”start_index”: Number indicating the initial position of the sentence in the post.
+     -”end_index”: Number indicating the last position of the sentence in the post.   
+
+./labels:
+-------
+
+   This directory contains the manual annotations of the dataset for each of the subtasks (i.e. factuality  polarity). Each .tsv file corresponds to a disease and a subtask.
+
+
