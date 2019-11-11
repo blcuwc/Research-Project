@@ -19,6 +19,7 @@ import sys
 
 
 def Load_data(dataset):
+    return 0
 
 
 if __name__ == '__main__':
