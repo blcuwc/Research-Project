@@ -98,15 +98,149 @@ def Set_input_embedding(sentences, labels, vocabulary):
             print("\n")
     return (full_input_ids, full_input_masks, full_segment_ids)
 
-def _3_fold(Dict, base_model):
+def Fine_Tune(model, train_inputs, batch_num ,device):
+
+    # True: fine tuning all the layers 
+    # False: only fine tuning the classifier layers
+    # Since XLNet in 'pytorch_transformer' did not contian classifier layers
+    # FULL_FINETUNING = True need to set True
+    FULL_FINETUNING = True
+
+    if FULL_FINETUNING:
+        # Fine tune model all layer parameters
+        param_optimizer = list(model.named_parameters())
+        no_decay = ['bias', 'gamma', 'beta']
+        optimizer_grouped_parameters = [
+            {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+             'weight_decay_rate': 0.01},
+            {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
+             'weight_decay_rate': 0.0}
+        ]
+    else:
+        # Only fine tune classifier parameters
+        param_optimizer = list(model.classifier.named_parameters()) 
+        optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]
+    optimizer = Adam(optimizer_grouped_parameters, lr=3e-5)
+
+    #Train model
+    model.train()
+    print("***** Running training *****")
+    print("  Num examples = %d"%(len(train_inputs)))
+    print("  Batch size = %d"%(batch_num))
+    print("  Num steps = %d"%(num_train_optimization_steps))
+    for _ in trange(epochs,desc="Epoch"):
+        tr_loss = 0
+        nb_tr_examples, nb_tr_steps = 0, 0
+        for step, batch in enumerate(train_dataloader):
+            # add batch to gpu
+            batch = tuple(t.to(device) for t in batch)
+            b_input_ids, b_input_mask, b_segs,b_labels = batch
+        
+            # forward pass
+            outputs = model(input_ids =b_input_ids,token_type_ids=b_segs, input_mask = b_input_mask,labels=b_labels)
+            loss, logits = outputs[:2]
+            if n_gpu>1:
+                # When multi gpu, average it
+                loss = loss.mean()
+        
+            # backward pass
+            loss.backward()
+        
+            # track train loss
+            tr_loss += loss.item()
+            nb_tr_examples += b_input_ids.size(0)
+            nb_tr_steps += 1
+        
+            # gradient clipping
+            torch.nn.utils.clip_grad_norm_(parameters=model.parameters(), max_norm=max_grad_norm)
+        
+            # update parameters
+            optimizer.step()
+            optimizer.zero_grad()
+        
+        # print train loss per epoch
+        print("Train loss: {}".format(tr_loss/nb_tr_steps))
+    return model
+
+#def Save_model(model):
+
+def accuracy():
+    
+
+def Evaluate_model(model):
+    #evaluate model
+    model.eval()
+    
+
+def _3_fold(Dict, base_model, tag2idx):
     name_list = Dict.keys()
+    train_inputs = []
+    train_tags = []
+    train_masks = []
+    train_segs = []
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    n_gpu = torch.cuda.device_count()
+
     for name in name_list:
         test_inputs, test_tags, test_masks, test_segs = Dict[name]
+        for _name in name_list:
+            if _name != name:
+                train_inputs.extend(Dict[_name][0])
+                train_tags.extend(Dict[_name][1])
+                train_masks.extend(Dict[_name][2])
+                train_segs.extend(Dict[_name][3])
         
+        train_inputs = torch.tensor(train_inputs)
+        test_inputs = torch.tensor(test_inputs)
+        train_tags = torch.tensor(train_tags)
+        test_tags = torch.tensor(test_tags)
+        train_masks = torch.tensor(train_masks)
+        test_masks = torch.tensor(test_masks)
+        train_segs = torch.tensor(train_segs)
+        test_segs = torch.tensor(test_segs)
+
+        #set batch num
+        batch_num = 32
+
+        train_data = TensorDataset(train_inputs, train_masks, train_segs, train_tags)
+        train_sample = RansomSampler(train_data)
+        # Drop last can make batch training better for the last one
+        train_dataloader = DataLoader(train_data, sampler = train_sampler, batch_size = batch_num, drop_last = True)
+        
+        test_data = TensorDataset(test_inputs, test_masks, test_segs, test_tags)
+        test_sampler = SequentialSampler(test_data)
+        test_dataloader = DataLoader(test_data, sampler=valid_sampler, batch_size=batch_num)
+
+        #load model
+        model = XLNetForSequenceClassification.from_pretrained(base_model, num_labels=len(tag2idx))
+        model.to(device)
+
+        # Set model to GPU,if you are using GPU machine
+        model.to(device);
+        # Add multi GPU support
+        #if n_gpu >1:
+            #model = torch.nn.DataParallel(model)
+        # Set epoch and grad max num
+        epochs = 5
+        max_grad_norm = 1.0
+        # Cacluate train optimiazaion num
+        num_train_optimization_steps = int( math.ceil(len(tr_inputs) / batch_num) / 1) * epochs
+
+        #Fine-tune model        
+        model = Fine_Tune(model, train_inputs, batch_num, device, num_train_optimization_steps)
+
+        #Save model
+        #Save_model(model)
     
+        Evaluate_model(model)
+
+        train_inputs = []
+        train_tags = []
+        train_masks = []
+        train_segs = []
     return train_set, test_set
 
-def _5_fold(Dict, base_model):
+def _5_fold(Dict, base_model, tag2idx):
     return train_set, test_set
 
 def Load_data(dataset_dir, vocabulary):
@@ -129,17 +263,19 @@ def Load_data(dataset_dir, vocabulary):
             factuality_dict[dataset_name] = [full_input_ids, full_input_masks, full_segment_ids]
     return polarity_dict, factuality_dict
 
-def Classify(Dataset_dict, base_model, use_3=True, use_5=True):
+def Classify(Dataset_dict, base_model, tag2idx, use_3=True, use_5=True):
     if use_3 == True:
-        _3_fold(Dataset_dict, base_model)
+        _3_fold(Dataset_dict, base_model, tag2idx)
     if use_5 == True:
-        _5_fold(Dataset_dict, base_model)
+        _5_fold(Dataset_dict, base_model, tag2idx)
 
 if __name__ == '__main__':
     dataset_dir = sys.argv[1]
     vocabulary = sys.argv[2]
     base_model = sys.argv[3]
     polarity_dict, factuality_dict = Load_data(dataset_dir, vocabulary)
-    Classify(polarity_dict, base_model)
-    Classify(factuality_dict, base_model)
+    p_tag2idx = {'POSITIVE':0, 'NEUTRAL':1, 'NEGATIVE':2}
+    f_tag2idx = {'EXPERIENCE':0, 'OPINION':1, 'FACT':2}
+    Classify(polarity_dict, base_model, p_tag2idx)
+    Classify(factuality_dict, base_model, f_tag2idx)
 
