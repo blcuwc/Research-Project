@@ -236,8 +236,29 @@ def _3_fold(Dict, base_model, tag2idx):
     train_tags = []
     train_masks = []
     train_segs = []
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #n_gpu = torch.cuda.device_count()
+
+    #set batch num
+    batch_num = 32
+
+    #load model
+    model = XLNetForSequenceClassification.from_pretrained(base_model, num_labels=len(tag2idx))
+
+    # Set model to GPU,if you are using GPU machine
+    model.to(device)
+
+    # Add multi GPU support
+    #if n_gpu >1:
+        #model = torch.nn.DataParallel(model)
+
+    # Set epoch and grad max num
+    epochs = 5
+    max_grad_norm = 1.0
+
+    # Cacluate train optimiazaion num
+    num_train_optimization_steps = int( math.ceil(len(tr_inputs) / batch_num) / 1) * epochs
 
     for name in name_list:
         test_inputs, test_tags, test_masks, test_segs = Dict[name]
@@ -272,26 +293,6 @@ def _3_fold(Dict, base_model, tag2idx):
         train_tags = []
         train_masks = []
         train_segs = []
-
-    #set batch num
-    batch_num = 32
-
-    #load model
-    model = XLNetForSequenceClassification.from_pretrained(base_model, num_labels=len(tag2idx))
-
-    # Set model to GPU,if you are using GPU machine
-    model.to(device)
-
-    # Add multi GPU support
-    #if n_gpu >1:
-        #model = torch.nn.DataParallel(model)
-
-    # Set epoch and grad max num
-    epochs = 5
-    max_grad_norm = 1.0
-
-    # Cacluate train optimiazaion num
-    num_train_optimization_steps = int( math.ceil(len(tr_inputs) / batch_num) / 1) * epochs
 
     for fold in folds:
         train_inputs, train_dataloader, test_inputs, test_dataloader = fold
