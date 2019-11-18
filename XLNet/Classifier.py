@@ -4,7 +4,7 @@ import os
 from tqdm import tqdm, trange
 from torch.optim import Adam
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
-from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
 
 from pytorch_transformers import (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer)
 
@@ -98,7 +98,7 @@ def Set_input_embedding(sentences, labels, vocabulary):
             print("\n")
     return (full_input_ids, full_input_masks, full_segment_ids)
 
-def Fine_Tune(model, train_inputs, batch_num ,device):
+def Fine_Tune(model, train_inputs, train_dataloader, batch_num ,device, num_train_optimization_steps, max_grad_norm):
 
     # True: fine tuning all the layers 
     # False: only fine tuning the classifier layers
@@ -164,22 +164,80 @@ def Fine_Tune(model, train_inputs, batch_num ,device):
 
 #def Save_model(model):
 
-def accuracy():
-    
+def accuracy(out, labels):
+    outputs = np.argmax(out, axis = 1)
+    return np.sum(outputs==labels)
 
-def Evaluate_model(model):
+def Evaluate_model(model, test_inputs, test_dataloader, batch_num):
     #evaluate model
     model.eval()
-    
 
+    eval_loss, eval_accuracy = 0, 0
+    nb_eval_steps, nb_eval_examples = 0, 0
+    
+    y_true = []
+    y_predict = []
+    print("***** Running evaluation *****")
+    
+    print("  Num examples ={}".format(len(test_inputs)))
+    print("  Batch size = {}".format(batch_num))
+    for step, batch in enumerate(test_dataloader):
+        batch = tuple(t.to(device) for t in batch)
+        b_input_ids, b_input_mask, b_segs,b_labels = batch
+        
+        with torch.no_grad():
+            outputs = model(input_ids =b_input_ids,token_type_ids=b_segs, input_mask = b_input_mask,labels=b_labels)
+        tmp_eval_loss, logits = outputs[:2]
+        
+        # Get textclassification predict result
+        logits = logits.detach().cpu().numpy()
+        label_ids = b_labels.to('cpu').numpy()
+        tmp_eval_accuracy = accuracy(logits, label_ids)
+#         print(tmp_eval_accuracy)
+#         print(np.argmax(logits, axis=1))
+#         print(label_ids)
+            
+        # Save predict and real label reuslt for analyze
+        for predict in np.argmax(logits, axis=1):
+            y_predict.append(predict)
+            
+        for real_result in label_ids.tolist():
+            y_true.append(real_result)
+     
+            
+        eval_loss += tmp_eval_loss.mean().item()
+        eval_accuracy += tmp_eval_accuracy
+       
+        nb_eval_steps += 1
+
+    eval_loss = eval_loss / nb_eval_steps
+    eval_accuracy = eval_accuracy / len(val_inputs)
+    loss = tr_loss/nb_tr_steps 
+    result = {'eval_loss': eval_loss,
+              'eval_accuracy': eval_accuracy,
+              'loss': loss}
+    report = classification_report(y_pred=np.array(y_predict),y_true=np.array(y_true))
+
+    # Save the report into file
+    output_eval_file = os.path.join(xlnet_out_address, "eval_results.txt")
+    with open(output_eval_file, "w") as writer:
+        print("***** Eval results *****")
+        for key in sorted(result.keys()):
+            print("  %s = %s"%(key, str(result[key])))
+            writer.write("%s = %s\n" % (key, str(result[key])))
+        
+        print(report)
+        writer.write("\n\n")  
+         
 def _3_fold(Dict, base_model, tag2idx):
     name_list = Dict.keys()
+    folds = []
     train_inputs = []
     train_tags = []
     train_masks = []
     train_segs = []
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    n_gpu = torch.cuda.device_count()
+    #n_gpu = torch.cuda.device_count()
 
     for name in name_list:
         test_inputs, test_tags, test_masks, test_segs = Dict[name]
@@ -199,9 +257,6 @@ def _3_fold(Dict, base_model, tag2idx):
         train_segs = torch.tensor(train_segs)
         test_segs = torch.tensor(test_segs)
 
-        #set batch num
-        batch_num = 32
-
         train_data = TensorDataset(train_inputs, train_masks, train_segs, train_tags)
         train_sample = RansomSampler(train_data)
         # Drop last can make batch training better for the last one
@@ -211,37 +266,46 @@ def _3_fold(Dict, base_model, tag2idx):
         test_sampler = SequentialSampler(test_data)
         test_dataloader = DataLoader(test_data, sampler=valid_sampler, batch_size=batch_num)
 
-        #load model
-        model = XLNetForSequenceClassification.from_pretrained(base_model, num_labels=len(tag2idx))
-        model.to(device)
-
-        # Set model to GPU,if you are using GPU machine
-        model.to(device);
-        # Add multi GPU support
-        #if n_gpu >1:
-            #model = torch.nn.DataParallel(model)
-        # Set epoch and grad max num
-        epochs = 5
-        max_grad_norm = 1.0
-        # Cacluate train optimiazaion num
-        num_train_optimization_steps = int( math.ceil(len(tr_inputs) / batch_num) / 1) * epochs
-
-        #Fine-tune model        
-        model = Fine_Tune(model, train_inputs, batch_num, device, num_train_optimization_steps)
-
-        #Save model
-        #Save_model(model)
-    
-        Evaluate_model(model)
+        folds.append([train_inputs, train_dataloader, test_inputs, test_dataloader])
 
         train_inputs = []
         train_tags = []
         train_masks = []
         train_segs = []
-    return train_set, test_set
+
+    #set batch num
+    batch_num = 32
+
+    #load model
+    model = XLNetForSequenceClassification.from_pretrained(base_model, num_labels=len(tag2idx))
+
+    # Set model to GPU,if you are using GPU machine
+    model.to(device)
+
+    # Add multi GPU support
+    #if n_gpu >1:
+        #model = torch.nn.DataParallel(model)
+
+    # Set epoch and grad max num
+    epochs = 5
+    max_grad_norm = 1.0
+
+    # Cacluate train optimiazaion num
+    num_train_optimization_steps = int( math.ceil(len(tr_inputs) / batch_num) / 1) * epochs
+
+    for fold in folds:
+        train_inputs, train_dataloader, test_inputs, test_dataloader = fold
+        #Fine-tune model        
+        model = Fine_Tune(model, train_inputs, train_dataloader, batch_num, device, num_train_optimization_steps, max_grad_norm)
+
+        #Save model
+        #Save_model(model)
+    
+        Evaluate_model(model, test_inputs, test_dataloader, batch_num)
+
 
 def _5_fold(Dict, base_model, tag2idx):
-    return train_set, test_set
+    pass
 
 def Load_data(dataset_dir, vocabulary):
     #read every dataset in dataset_dir into dataframe
