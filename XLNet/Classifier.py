@@ -16,13 +16,9 @@ import torch.nn.functional as F
 
 import sys
 
-disease_ids = ['DIS00', 'DIS01', 'DIS02']
-category = ['factuality', 'polarity']
-
-
 def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
     # Len of the sentence must be the same as the training model
-    # See model's 'max_position_embeddings' = 512
+    # See model's 'max_position_embeddings' = 512, 512 / 8 = 64 is the max number of tokens in a sentence
     max_len  = 64
     # With cased model, set do_lower_case = False
     tokenizer = XLNetTokenizer(vocab_file = vocabulary, do_lower_case = False)
@@ -43,7 +39,7 @@ def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
     MASK_ID = tokenizer.encode("<mask>")[0]
     EOD_ID = tokenizer.encode("<eod>")[0]
 
-    for i,sentence in enumerate(sentences):
+    for i, sentence in enumerate(sentences):
         # Tokenize sentence to token id list
         tokens_a = tokenizer.encode(sentence)
     
@@ -98,7 +94,7 @@ def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
             print("\n")
 
     # Make label into id
-    tags = [tag2idx[lab] for lab in labels]
+    tags = [ tag2idx[label] for label in labels]
     print(tags[0])
     return (full_input_ids, tags, full_input_masks, full_segment_ids)
 
@@ -221,18 +217,8 @@ def Evaluate_model(model, train_loss, nb_tr_steps, test_inputs, test_dataloader,
               'eval_accuracy': eval_accuracy,
               'loss': loss}
     report = classification_report(y_pred=np.array(y_predict), y_true=np.array(y_true))
+    return result, report
 
-    # Save the report into file
-    xlnet_out_dir = './xlnet_out_dir/'
-    output_test_file = os.path.join(xlnet_out_dir, "test_results.txt")
-    with open(output_test_file, "w") as writer:
-        print("***** Test results *****")
-        for key in sorted(result.keys()):
-            print("  %s = %s"%(key, str(result[key])))
-            writer.write("%s = %s\n" % (key, str(result[key])))
-        
-        print(report)
-        writer.write("\n\n")  
          
 def _3_fold(Dict, base_model_path, tag2idx):
     name_list = Dict.keys()
@@ -307,8 +293,20 @@ def _3_fold(Dict, base_model_path, tag2idx):
         #Save model
         #Save_model(model)
     
-        Evaluate_model(model, train_loss, nb_tr_step, test_inputs, test_dataloader, batch_num, device)
+        result, report = Evaluate_model(model, train_loss, nb_tr_step, test_inputs, test_dataloader, batch_num, device)
 
+        # Save the report into file
+        xlnet_out_dir = './xlnet_out_dir/'
+        output_test_file = os.path.join(xlnet_out_dir, "test_results.txt")
+        with open(output_test_file, "w") as writer:
+            print("***** Test results *****")
+            for key in sorted(result.keys()):
+                print("  %s = %s"%(key, str(result[key])))
+                writer.write("%s = %s\n" % (key, str(result[key])))
+        
+            print(report)
+            writer.write("\n\n")  
+        writer.close()
 
 def _5_fold(Dict, base_model_path, tag2idx):
     pass
@@ -320,8 +318,10 @@ def Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx):
     for dataset_name in os.listdir(dataset_dir):
         dataset_path = os.path.join(dataset_dir, dataset_name)
         df_data = pd.read_csv(dataset_path, sep="\t",encoding="utf-8",names=['texts','labels'])
-        print (df_data.columns)
         df_data = df_data.drop(df_data.index[df_data['labels'] == 'NOT_LABELED'].tolist())
+        print (df_data.columns)
+        print (df_data.labels.unique())
+        print (df_data.labels.value_counts())
         sentences = df_data['texts'].tolist()
         labels = df_data['labels'].tolist()
 
