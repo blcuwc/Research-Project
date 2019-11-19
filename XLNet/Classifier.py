@@ -20,7 +20,7 @@ disease_ids = ['DIS00', 'DIS01', 'DIS02']
 category = ['factuality', 'polarity']
 
 
-def Set_input_embedding(sentences, labels, vocabulary):
+def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
     # Len of the sentence must be the same as the training model
     # See model's 'max_position_embeddings' = 512
     max_len  = 64
@@ -96,9 +96,13 @@ def Set_input_embedding(sentences, labels, vocabulary):
             print("attention_masks:%s"%(input_mask))
             print("segment_ids:%s"%(segment_ids))
             print("\n")
-    return (full_input_ids, full_input_masks, full_segment_ids)
 
-def Fine_Tune(model, train_inputs, train_dataloader, batch_num ,device, num_train_optimization_steps, max_grad_norm):
+    # Make label into id
+    tags = [tag2idx[lab] for lab in labels]
+    print(tags[0])
+    return (full_input_ids, tags, full_input_masks, full_segment_ids)
+
+def Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num ,device, n_gpu, num_train_optimization_steps, max_grad_norm):
 
     # True: fine tuning all the layers 
     # False: only fine tuning the classifier layers
@@ -128,7 +132,7 @@ def Fine_Tune(model, train_inputs, train_dataloader, batch_num ,device, num_trai
     print("  Num examples = %d"%(len(train_inputs)))
     print("  Batch size = %d"%(batch_num))
     print("  Num steps = %d"%(num_train_optimization_steps))
-    for _ in trange(epochs,desc="Epoch"):
+    for _ in trange(epochs, desc="Epoch"):
         tr_loss = 0
         nb_tr_examples, nb_tr_steps = 0, 0
         for step, batch in enumerate(train_dataloader):
@@ -160,7 +164,7 @@ def Fine_Tune(model, train_inputs, train_dataloader, batch_num ,device, num_trai
         
         # print train loss per epoch
         print("Train loss: {}".format(tr_loss/nb_tr_steps))
-    return model
+    return model, tr_loss, nb_tr_steps
 
 #def Save_model(model):
 
@@ -168,7 +172,7 @@ def accuracy(out, labels):
     outputs = np.argmax(out, axis = 1)
     return np.sum(outputs==labels)
 
-def Evaluate_model(model, test_inputs, test_dataloader, batch_num):
+def Evaluate_model(model, train_loss, nb_tr_steps, test_inputs, test_dataloader, batch_num, device):
     #evaluate model
     model.eval()
 
@@ -211,17 +215,18 @@ def Evaluate_model(model, test_inputs, test_dataloader, batch_num):
         nb_eval_steps += 1
 
     eval_loss = eval_loss / nb_eval_steps
-    eval_accuracy = eval_accuracy / len(val_inputs)
-    loss = tr_loss/nb_tr_steps 
+    eval_accuracy = eval_accuracy / len(test_inputs)
+    loss = train_loss/nb_tr_steps 
     result = {'eval_loss': eval_loss,
               'eval_accuracy': eval_accuracy,
               'loss': loss}
-    report = classification_report(y_pred=np.array(y_predict),y_true=np.array(y_true))
+    report = classification_report(y_pred=np.array(y_predict), y_true=np.array(y_true))
 
     # Save the report into file
-    output_eval_file = os.path.join(xlnet_out_address, "eval_results.txt")
-    with open(output_eval_file, "w") as writer:
-        print("***** Eval results *****")
+    xlnet_out_dir = './xlnet_out_dir/'
+    output_test_file = os.path.join(xlnet_out_dir, "test_results.txt")
+    with open(output_test_file, "w") as writer:
+        print("***** Test results *****")
         for key in sorted(result.keys()):
             print("  %s = %s"%(key, str(result[key])))
             writer.write("%s = %s\n" % (key, str(result[key])))
@@ -229,7 +234,7 @@ def Evaluate_model(model, test_inputs, test_dataloader, batch_num):
         print(report)
         writer.write("\n\n")  
          
-def _3_fold(Dict, base_model, tag2idx):
+def _3_fold(Dict, base_model_path, tag2idx):
     name_list = Dict.keys()
     folds = []
     train_inputs = []
@@ -238,27 +243,27 @@ def _3_fold(Dict, base_model, tag2idx):
     train_segs = []
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #n_gpu = torch.cuda.device_count()
+    n_gpu = torch.cuda.device_count()
 
     #set batch num
     batch_num = 32
 
     #load model
-    model = XLNetForSequenceClassification.from_pretrained(base_model, num_labels=len(tag2idx))
+    model = XLNetForSequenceClassification.from_pretrained(base_model_path, num_labels=len(tag2idx))
 
     # Set model to GPU,if you are using GPU machine
     model.to(device)
 
     # Add multi GPU support
-    #if n_gpu >1:
-        #model = torch.nn.DataParallel(model)
+    if n_gpu >1:
+        model = torch.nn.DataParallel(model)
 
     # Set epoch and grad max num
     epochs = 5
     max_grad_norm = 1.0
 
     # Cacluate train optimiazaion num
-    num_train_optimization_steps = int( math.ceil(len(tr_inputs) / batch_num) / 1) * epochs
+    num_train_optimization_steps = int( math.ceil(len(train_inputs) / batch_num) / 1) * epochs
 
     for name in name_list:
         test_inputs, test_tags, test_masks, test_segs = Dict[name]
@@ -279,13 +284,13 @@ def _3_fold(Dict, base_model, tag2idx):
         test_segs = torch.tensor(test_segs)
 
         train_data = TensorDataset(train_inputs, train_masks, train_segs, train_tags)
-        train_sample = RansomSampler(train_data)
+        train_sampler = RandomSampler(train_data)
         # Drop last can make batch training better for the last one
         train_dataloader = DataLoader(train_data, sampler = train_sampler, batch_size = batch_num, drop_last = True)
         
         test_data = TensorDataset(test_inputs, test_masks, test_segs, test_tags)
         test_sampler = SequentialSampler(test_data)
-        test_dataloader = DataLoader(test_data, sampler=valid_sampler, batch_size=batch_num)
+        test_dataloader = DataLoader(test_data, sampler=test_sampler, batch_size=batch_num)
 
         folds.append([train_inputs, train_dataloader, test_inputs, test_dataloader])
 
@@ -297,18 +302,18 @@ def _3_fold(Dict, base_model, tag2idx):
     for fold in folds:
         train_inputs, train_dataloader, test_inputs, test_dataloader = fold
         #Fine-tune model        
-        model = Fine_Tune(model, train_inputs, train_dataloader, batch_num, device, num_train_optimization_steps, max_grad_norm)
+        model, train_loss, nb_tr_step = Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num, device, n_gpu, num_train_optimization_steps, max_grad_norm)
 
         #Save model
         #Save_model(model)
     
-        Evaluate_model(model, test_inputs, test_dataloader, batch_num)
+        Evaluate_model(model, train_loss, nb_tr_step, test_inputs, test_dataloader, batch_num, device)
 
 
-def _5_fold(Dict, base_model, tag2idx):
+def _5_fold(Dict, base_model_path, tag2idx):
     pass
 
-def Load_data(dataset_dir, vocabulary):
+def Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx):
     #read every dataset in dataset_dir into dataframe
     polarity_dict = {}
     factuality_dict = {}
@@ -316,31 +321,34 @@ def Load_data(dataset_dir, vocabulary):
         dataset_path = os.path.join(dataset_dir, dataset_name)
         df_data = pd.read_csv(dataset_path, sep="\t",encoding="utf-8",names=['texts','labels'])
         print (df_data.columns)
-        df_data = df_data.drop(df_data['labels'] == 'NOT_LABELED')
-        sentences = df_data['texts'].to_list()
-        labels = df_data['labels'].to_list()
+        df_data = df_data.drop(df_data.index[df_data['labels'] == 'NOT_LABELED'].tolist())
+        sentences = df_data['texts'].tolist()
+        labels = df_data['labels'].tolist()
 
         # set input embedding using base xlnet model
-        full_input_ids, full_input_masks, full_segment_ids = Set_input_embedding(sentences, labels, vocabulary)
         if 'polarity' in dataset_name:
-            polarity_dict[dataset_name] = [full_input_ids, full_input_masks, full_segment_ids]
+            full_input_ids, tags, full_input_masks, full_segment_ids = Set_input_embedding(sentences, labels, vocabulary, p_tag2idx)
+            polarity_dict[dataset_name] = [full_input_ids, tags, full_input_masks, full_segment_ids]
         if 'factuality' in dataset_name:
-            factuality_dict[dataset_name] = [full_input_ids, full_input_masks, full_segment_ids]
+            full_input_ids, tags, full_input_masks, full_segment_ids = Set_input_embedding(sentences, labels, vocabulary, f_tag2idx)
+            factuality_dict[dataset_name] = [full_input_ids, tags, full_input_masks, full_segment_ids]
     return polarity_dict, factuality_dict
 
-def Classify(Dataset_dict, base_model, tag2idx, use_3=True, use_5=True):
+def Classify(Dataset_dict, base_model_path, tag2idx, use_3=True, use_5=True):
     if use_3 == True:
-        _3_fold(Dataset_dict, base_model, tag2idx)
+        _3_fold(Dataset_dict, base_model_path, tag2idx)
     if use_5 == True:
-        _5_fold(Dataset_dict, base_model, tag2idx)
+        _5_fold(Dataset_dict, base_model_path, tag2idx)
 
 if __name__ == '__main__':
     dataset_dir = sys.argv[1]
     vocabulary = sys.argv[2]
-    base_model = sys.argv[3]
-    polarity_dict, factuality_dict = Load_data(dataset_dir, vocabulary)
+    base_model_path = sys.argv[3]
+
     p_tag2idx = {'POSITIVE':0, 'NEUTRAL':1, 'NEGATIVE':2}
     f_tag2idx = {'EXPERIENCE':0, 'OPINION':1, 'FACT':2}
-    Classify(polarity_dict, base_model, p_tag2idx)
-    Classify(factuality_dict, base_model, f_tag2idx)
+
+    polarity_dict, factuality_dict = Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx)
+    Classify(polarity_dict, base_model_path, p_tag2idx)
+    Classify(factuality_dict, base_model_path, f_tag2idx)
 
