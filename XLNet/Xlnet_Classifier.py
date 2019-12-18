@@ -308,6 +308,16 @@ def _3_fold(Dict, base_model_path, tag2idx):
             writer.write("\n\n")  
         writer.close()
 
+        #reload model, prevent overfit
+        model = XLNetForSequenceClassification.from_pretrained(base_model_path, num_labels=len(tag2idx))
+     
+        # Set model to GPU,if you are using GPU machine
+        model.to(device)
+     
+        # Add multi GPU support
+        if n_gpu >1:
+            model = torch.nn.DataParallel(model)
+     
 def _5_fold(Dict, base_model_path, tag2idx):
     pass
 
