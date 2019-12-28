@@ -98,7 +98,7 @@ def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
     print(tags[0])
     return (full_input_ids, tags, full_input_masks, full_segment_ids)
 
-def Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num ,device, n_gpu, num_train_optimization_steps, max_grad_norm):
+def Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num, device, n_gpu, num_train_optimization_steps, max_grad_norm):
 
     # True: fine tuning all the layers 
     # False: only fine tuning the classifier layers
@@ -124,7 +124,7 @@ def Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num ,device, 
 
     #Train model
     model.train()
-    print("***** Running training *****")
+    print("========== Running training ==========")
     print("  Num examples = %d"%(len(train_inputs)))
     print("  Batch size = %d"%(batch_num))
     print("  Num steps = %d"%(num_train_optimization_steps))
@@ -177,7 +177,7 @@ def Evaluate_model(model, train_loss, nb_tr_steps, test_inputs, test_dataloader,
     
     y_true = []
     y_predict = []
-    print("***** Running evaluation *****")
+    print("========== Running evaluation ==========")
     
     print("  Num examples ={}".format(len(test_inputs)))
     print("  Batch size = {}".format(batch_num))
@@ -221,16 +221,11 @@ def Evaluate_model(model, train_loss, nb_tr_steps, test_inputs, test_dataloader,
 
          
 def _3_fold(Dict, base_model_path, tag2idx):
-    name_list = Dict.keys()
-    folds = []
-    train_inputs = []
-    train_tags = []
-    train_masks = []
-    train_segs = []
-
+    #print ("device count:", torch.cuda.device_count())
+    #print ("current device:", torch.cuda.current_device())
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_gpu = torch.cuda.device_count()
-
+        
     #set batch num
     batch_num = 32
 
@@ -248,13 +243,19 @@ def _3_fold(Dict, base_model_path, tag2idx):
     epochs = 5
     max_grad_norm = 1.0
 
-    # Cacluate train optimiazaion num
-    num_train_optimization_steps = int( math.ceil(len(train_inputs) / batch_num) / 1) * epochs
 
-    for name in name_list:
+    for name in Dict.keys():
+        #print ("===============Dataset: %s===============" % name)
+        test_dataset = "%s" % name
+        train_datasets = ""
+        train_inputs = []
+        train_tags = []
+        train_masks = []
+        train_segs = []
         test_inputs, test_tags, test_masks, test_segs = Dict[name]
-        for _name in name_list:
+        for _name in Dict.keys():
             if _name != name:
+                train_datasets = train_datasets + ' ' + _name
                 train_inputs.extend(Dict[_name][0])
                 train_tags.extend(Dict[_name][1])
                 train_masks.extend(Dict[_name][2])
@@ -278,15 +279,11 @@ def _3_fold(Dict, base_model_path, tag2idx):
         test_sampler = SequentialSampler(test_data)
         test_dataloader = DataLoader(test_data, sampler=test_sampler, batch_size=batch_num)
 
-        folds.append([train_inputs, train_dataloader, test_inputs, test_dataloader])
+        # Cacluate train optimiazaion num
+        num_train_optimization_steps = int( math.ceil(len(train_inputs) / batch_num) / 1) * epochs
 
-        train_inputs = []
-        train_tags = []
-        train_masks = []
-        train_segs = []
-
-    for fold in folds:
-        train_inputs, train_dataloader, test_inputs, test_dataloader = fold
+        print ("======== Train Datasets:%s" % train_datasets)
+        print ("======== Test Dataset: %s" % test_dataset)
         #Fine-tune model        
         model, train_loss, nb_tr_step = Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num, device, n_gpu, num_train_optimization_steps, max_grad_norm)
 
@@ -299,13 +296,14 @@ def _3_fold(Dict, base_model_path, tag2idx):
         xlnet_out_dir = './xlnet_out_dir/'
         output_test_file = os.path.join(xlnet_out_dir, "test_results.txt")
         with open(output_test_file, "w") as writer:
-            print("***** Test results *****")
+            print("========== Test results ==========")
             for key in sorted(result.keys()):
-                print("  %s = %s"%(key, str(result[key])))
+                print("  %s = %s" % (key, str(result[key])))
                 writer.write("%s = %s\n" % (key, str(result[key])))
         
-            print(report)
-            writer.write("\n\n")  
+            print (report)
+            print ('\n')
+            writer.write("\n\n")
         writer.close()
 
         #reload model, prevent overfit
@@ -329,9 +327,9 @@ def Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx):
         dataset_path = os.path.join(dataset_dir, dataset_name)
         df_data = pd.read_csv(dataset_path, sep="\t",encoding="utf-8",names=['texts','labels'])
         df_data = df_data.drop(df_data.index[df_data['labels'] == 'NOT_LABELED'].tolist())
-        print (df_data.columns)
-        print (df_data.labels.unique())
-        print (df_data.labels.value_counts())
+        #print (df_data.columns)
+        #print (df_data.labels.unique())
+        #print (df_data.labels.value_counts())
         sentences = df_data['texts'].tolist()
         labels = df_data['labels'].tolist()
 
