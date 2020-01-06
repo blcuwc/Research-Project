@@ -361,7 +361,7 @@ def Classify(Dataset_dict, base_model_path, tag2idx, use_3=True, use_5=True):
     return (pred, true, sen)
      
 def Plot_confusion_matrix(pred, true, labels, name):
-    c_m_array = confusion_matrix(pred, true)
+    c_m_array = confusion_matrix(true, pred)
     df_c_m = pd.DataFrame(c_m_array, index = labels, columns = labels)
     heatmap = sn.heatmap(df_c_m, annot=True, cmap='coolwarm', linecolor='white', linewidths=1)
     figure = heatmap.get_figure()
