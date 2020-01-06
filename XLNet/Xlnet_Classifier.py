@@ -246,7 +246,7 @@ def _3_fold(Dict, base_model_path, tag2idx):
         model = torch.nn.DataParallel(model)
 
     # Set epoch and grad max num
-    epochs = 1
+    epochs = 5
     max_grad_norm = 1.0
 
     pred = []
@@ -412,10 +412,10 @@ def Error_analysis(p_p, p_t, p_s, f_p, f_t, f_s):
     err_heat_map = sn.heatmap(df_error_m, annot=True)
 #    err_heat_map.set_xlabel(fontsize=20)
 #    err_heat_map.set_ylabel(fontsize=20)
-    err_heat_map.tick_params(axis = 'both', which = 'major', labelsize='small')
-    err_heat_map.tick_params(axis = 'both', which = 'minor', labelsize='small')
+    err_heat_map.tick_params(axis = 'x', which = 'major', labelsize=6)
+    err_heat_map.tick_params(axis = 'y', which = 'major', labelsize=9)
     figure_error = err_heat_map.get_figure()
-    figure_error.savefig('XLNet_error_matrix.png')
+    figure_error.savefig('XLNet_error_matrix.png', dpi = 500)
     plt.close()
 
 if __name__ == '__main__':

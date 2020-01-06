@@ -232,7 +232,7 @@ def _3_fold(Dict, base_model_path, tag2ids):
         model = torch.nn.DataParallel(model)
 
     # Set epoch and grad max num
-    epochs = 1
+    epochs = 5
     max_grad_norm = 1.0
 
     pred = []
@@ -370,7 +370,7 @@ def Plot_confusion_matrix(pred, true, labels, name):
 
 def Error_analysis(p_p, p_t, p_s, f_p, f_t, f_s):
     error_hash_map = {"['0' '1']":0, "['0' '2']":1, "['1' '0']":2, "['1' '2']":3, "['2' '0']":4, "['2' '1']":5}
-    error_matrix_index = ['POS->NEU', 'POS->NEG', 'NEU->POS', 'NEU->NEG', 'NEG->POS', 'NEG-NEU']
+    error_matrix_index = ['POS->NEU', 'POS->NEG', 'NEU->POS', 'NEU->NEG', 'NEG->POS', 'NEG->NEU']
     error_matrix_column = ['EXP->OPI', 'EXP->FAC', 'OPI->EXP', 'OPI->FAC', 'FAC->EXP', 'FAC->OPI']
     error_m_row = []
     error_m_column = []
