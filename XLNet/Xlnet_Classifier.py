@@ -1,6 +1,7 @@
 #coding = utf-8
 import torch
 import os
+import sys
 from tqdm import tqdm, trange
 from torch.optim import Adam
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
@@ -9,12 +10,17 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from pytorch_transformers import (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer)
 
 import pandas as pd
+import seaborn as sn
+#from pylab import savefig
 import math
 import numpy as np
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 import torch.nn.functional as F
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import savefig
 
-import sys
 
 def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
     # Len of the sentence must be the same as the training model
@@ -85,7 +91,7 @@ def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
         full_input_masks.append(input_mask)
         full_segment_ids.append(segment_ids)
     
-        if 3 > i:
+        if 1 > i:
             print("No.:%d"%(i))
             print("sentence: %s"%(sentence))
             print("input_ids:%s"%(input_ids))
@@ -137,7 +143,7 @@ def Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num, device, 
             b_input_ids, b_input_mask, b_segs,b_labels = batch
         
             # forward pass
-            outputs = model(input_ids =b_input_ids,token_type_ids=b_segs, input_mask = b_input_mask,labels=b_labels)
+            outputs = model(input_ids = b_input_ids, token_type_ids = b_segs, input_mask = b_input_mask, labels=b_labels)
             loss, logits = outputs[:2]
             if n_gpu>1:
                 # When multi gpu, average it
@@ -186,7 +192,7 @@ def Evaluate_model(model, train_loss, nb_tr_steps, test_inputs, test_dataloader,
         b_input_ids, b_input_mask, b_segs,b_labels = batch
         
         with torch.no_grad():
-            outputs = model(input_ids =b_input_ids,token_type_ids=b_segs, input_mask = b_input_mask,labels=b_labels)
+            outputs = model(input_ids =b_input_ids,token_type_ids=b_segs, input_mask = b_input_mask, labels=b_labels)
         tmp_eval_loss, logits = outputs[:2]
         
         # Get textclassification predict result
@@ -217,7 +223,7 @@ def Evaluate_model(model, train_loss, nb_tr_steps, test_inputs, test_dataloader,
               'eval_accuracy': eval_accuracy,
               'loss': loss}
     report = classification_report(y_pred=np.array(y_predict), y_true=np.array(y_true))
-    return result, report
+    return result, report, y_predict, y_true
 
          
 def _3_fold(Dict, base_model_path, tag2idx):
@@ -225,7 +231,7 @@ def _3_fold(Dict, base_model_path, tag2idx):
     #print ("current device:", torch.cuda.current_device())
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_gpu = torch.cuda.device_count()
-        
+
     #set batch num
     batch_num = 32
 
@@ -240,10 +246,12 @@ def _3_fold(Dict, base_model_path, tag2idx):
         model = torch.nn.DataParallel(model)
 
     # Set epoch and grad max num
-    epochs = 5
+    epochs = 1
     max_grad_norm = 1.0
 
-
+    pred = []
+    true = []
+    sen = []
     for name in Dict.keys():
         #print ("===============Dataset: %s===============" % name)
         test_dataset = "%s" % name
@@ -290,7 +298,11 @@ def _3_fold(Dict, base_model_path, tag2idx):
         #Save model
         #Save_model(model)
     
-        result, report = Evaluate_model(model, train_loss, nb_tr_step, test_inputs, test_dataloader, batch_num, device)
+        result, report, y_pred, y_true = Evaluate_model(model, train_loss, nb_tr_step, test_inputs, test_dataloader, batch_num, device)
+
+        pred.extend(y_pred)
+        true.extend(y_true)
+        sen.extend(sentence_dict[name])
 
         # Save the report into file
         xlnet_out_dir = './xlnet_out_dir/'
@@ -315,7 +327,17 @@ def _3_fold(Dict, base_model_path, tag2idx):
         # Add multi GPU support
         if n_gpu >1:
             model = torch.nn.DataParallel(model)
-     
+
+        print ('len pred: ', len(pred))
+        print ('len true: ', len(true))
+        print ('len sen: ', len(sen))
+        sys.stdout.flush()
+
+        assert len(pred) == len(sen)
+        assert len(true) == len(sen)
+
+    return (pred, true, sen)
+
 def _5_fold(Dict, base_model_path, tag2idx):
     pass
 
@@ -323,6 +345,7 @@ def Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx):
     #read every dataset in dataset_dir into dataframe
     polarity_dict = {}
     factuality_dict = {}
+    sentence_dict = {}
     for dataset_name in os.listdir(dataset_dir):
         dataset_path = os.path.join(dataset_dir, dataset_name)
         df_data = pd.read_csv(dataset_path, sep="\t",encoding="utf-8",names=['texts','labels'])
@@ -332,6 +355,7 @@ def Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx):
         #print (df_data.labels.value_counts())
         sentences = df_data['texts'].tolist()
         labels = df_data['labels'].tolist()
+        sentence_dict[dataset_name] = sentences
 
         # set input embedding using base xlnet model
         if 'polarity' in dataset_name:
@@ -340,13 +364,59 @@ def Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx):
         if 'factuality' in dataset_name:
             full_input_ids, tags, full_input_masks, full_segment_ids = Set_input_embedding(sentences, labels, vocabulary, f_tag2idx)
             factuality_dict[dataset_name] = [full_input_ids, tags, full_input_masks, full_segment_ids]
-    return polarity_dict, factuality_dict
+    return polarity_dict, factuality_dict, sentence_dict
 
 def Classify(Dataset_dict, base_model_path, tag2idx, use_3=True, use_5=True):
     if use_3 == True:
-        _3_fold(Dataset_dict, base_model_path, tag2idx)
+        pred, true, sen = _3_fold(Dataset_dict, base_model_path, tag2idx)
     if use_5 == True:
         _5_fold(Dataset_dict, base_model_path, tag2idx)
+    return (pred, true, sen)
+     
+def Plot_confusion_matrix(pred, true, labels, name):
+    c_m_array = confusion_matrix(pred, true)
+    df_c_m = pd.DataFrame(c_m_array, index = labels, columns = labels)
+    heatmap = sn.heatmap(df_c_m, annot=True, cmap='coolwarm', linecolor='white', linewidths=1)
+    figure = heatmap.get_figure()
+    figure.savefig('XLNet_%s.png' % name, dpi=400)
+    plt.close()
+
+def Error_analysis(p_p, p_t, p_s, f_p, f_t, f_s):
+    error_hash_map = {"['0' '1']":0, "['0' '2']":1, "['1' '0']":2, "['1' '2']":3, "['2' '0']":4, "['2' '1']":5}
+    error_matrix_index = ['POS->NEU', 'POS->NEG', 'NEU->POS', 'NEU->NEG', 'NEG->POS', 'NEG-NEU']
+    error_matrix_column = ['EXP->OPI', 'EXP->FAC', 'OPI->EXP', 'OPI->FAC', 'FAC->EXP', 'FAC->OPI']
+    error_m_row = []
+    error_m_column = []
+
+    p_array = np.array([p_p, p_t, p_s])
+    print ("p_array shape: ", str(p_array.shape))
+    f_array = np.array([f_p, f_t, f_s])
+    print ("f_array shape: ", str(f_array.shape))
+
+    p_array = p_array[:, p_array[0,:]!=p_array[1,:]]
+    print ("new p_array shape: ", str(p_array.shape))
+    f_array = f_array[:, f_array[0,:]!=f_array[1,:]]
+    print ("new f_array shape: ", str(f_array.shape))
+
+    for col in range(p_array.shape[1]):
+        if p_array[2, col] in f_array[2,:]:
+            if len(np.where(f_array[2, :]==p_array[2,col])) > 1:
+                continue
+            error_m_row.append(error_hash_map[str(p_array[:2, col])])
+            error_m_column.append(error_hash_map[str(f_array[:2, f_array[2, :]==p_array[2,col]].T[0])])
+    print ('error_m_row: ', error_m_row)
+    print ('error_m_column: ', error_m_column)
+
+    error_array = confusion_matrix(error_m_row, error_m_column)
+    df_error_m = pd.DataFrame(error_array, index = error_matrix_index, columns = error_matrix_column)
+    err_heat_map = sn.heatmap(df_error_m, annot=True)
+#    err_heat_map.set_xlabel(fontsize=20)
+#    err_heat_map.set_ylabel(fontsize=20)
+    err_heat_map.tick_params(axis = 'both', which = 'major', labelsize='small')
+    err_heat_map.tick_params(axis = 'both', which = 'minor', labelsize='small')
+    figure_error = err_heat_map.get_figure()
+    figure_error.savefig('XLNet_error_matrix.png')
+    plt.close()
 
 if __name__ == '__main__':
     dataset_dir = sys.argv[1]
@@ -356,7 +426,14 @@ if __name__ == '__main__':
     p_tag2idx = {'POSITIVE':0, 'NEUTRAL':1, 'NEGATIVE':2}
     f_tag2idx = {'EXPERIENCE':0, 'OPINION':1, 'FACT':2}
 
-    polarity_dict, factuality_dict = Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx)
-    Classify(polarity_dict, base_model_path, p_tag2idx)
-    Classify(factuality_dict, base_model_path, f_tag2idx)
+    polarity_dict, factuality_dict, sentence_dict = Load_data(dataset_dir, vocabulary, p_tag2idx, f_tag2idx)
+
+    polarity_pred, polarity_true, polarity_sen = Classify(polarity_dict, base_model_path, p_tag2idx)
+    Plot_confusion_matrix(polarity_pred, polarity_true, ["POSITIVE", "NEUTRAL", "NEGATIVE"], 'polarity')
+
+    factuality_pred, factuality_true, factuality_sen = Classify(factuality_dict, base_model_path, f_tag2idx)
+    Plot_confusion_matrix(factuality_pred, factuality_true, ["EXPERIENCE", "OPINION", "FACT"], 'factuality')
+    #with open('./xlnet_out_dir/polarity.txt', 'w') as f:
+    #    p_array = np.array([polarity_pred, polarity_true, polarity_sen])
+    Error_analysis(polarity_pred, polarity_true, polarity_sen, factuality_pred, factuality_true, factuality_sen)
 
