@@ -385,13 +385,12 @@ def Error_analysis(p_p, p_t, p_s, f_p, f_t, f_s):
             error_m_row.append(error_hash_map[str(p_array[:2, col])])
             error_m_column.append(error_hash_map[str(f_array[:2, f_array[2, :]==p_array[2,col]].T[0])])
     error_array = confusion_matrix(error_m_row, error_m_column)
-    df_error_m = pd.DataFrame(error_array)
-    #df_error_m = pd.DataFrame(error_array, index = error_matrix_index, columns = error_matrix_column)
+    df_error_m = pd.DataFrame(error_array, index = error_matrix_index, columns = error_matrix_column)
     err_heat_map = sn.heatmap(df_error_m, annot=True)
-    err_heat_map.set_xlabel(error_matrix_index, fontsize = 5)
-    err_heat_map.set_ylabel(error_matrix_column, fontsize = 5)
+    err_heat_map.tick_params(axis = 'x', which = 'major', labelsize=6)
+    err_heat_map.tick_params(axis = 'y', which = 'major', labelsize=9)
     figure_error = err_heat_map.get_figure()
-    figure_error.savefig('BERT_error_matrix.png')
+    figure_error.savefig('BERT_error_matrix.png', dpi = 500)
     plt.close()
 
 if __name__ == '__main__':
