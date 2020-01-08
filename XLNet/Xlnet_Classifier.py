@@ -5,13 +5,11 @@ import sys
 from tqdm import tqdm, trange
 from torch.optim import Adam
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
-#from sklearn.model_selection import train_test_split
 
 from pytorch_transformers import (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer)
 
 import pandas as pd
 import seaborn as sn
-#from pylab import savefig
 import math
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
@@ -91,17 +89,17 @@ def Set_input_embedding(sentences, labels, vocabulary, tag2idx):
         full_input_masks.append(input_mask)
         full_segment_ids.append(segment_ids)
     
-        if 1 > i:
-            print("No.:%d"%(i))
-            print("sentence: %s"%(sentence))
-            print("input_ids:%s"%(input_ids))
-            print("attention_masks:%s"%(input_mask))
-            print("segment_ids:%s"%(segment_ids))
-            print("\n")
+        #if 1 > i:
+            #print("No.:%d"%(i))
+            #print("sentence: %s"%(sentence))
+            #print("input_ids:%s"%(input_ids))
+            #print("attention_masks:%s"%(input_mask))
+            #print("segment_ids:%s"%(segment_ids))
+            #print("\n")
 
     # Make label into id
     tags = [ tag2idx[label] for label in labels]
-    print(tags[0])
+    #print(tags[0])
     return (full_input_ids, tags, full_input_masks, full_segment_ids)
 
 def Fine_Tune(model, train_inputs, train_dataloader, epochs, batch_num, device, n_gpu, num_train_optimization_steps, max_grad_norm):
@@ -227,8 +225,6 @@ def Evaluate_model(model, train_loss, nb_tr_steps, test_inputs, test_dataloader,
 
          
 def _3_fold(Dict, base_model_path, tag2idx):
-    #print ("device count:", torch.cuda.device_count())
-    #print ("current device:", torch.cuda.current_device())
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_gpu = torch.cuda.device_count()
 
@@ -374,7 +370,7 @@ def Classify(Dataset_dict, base_model_path, tag2idx, use_3=True, use_5=True):
     return (pred, true, sen)
      
 def Plot_confusion_matrix(pred, true, labels, name):
-    c_m_array = confusion_matrix(pred, true)
+    c_m_array = confusion_matrix(true, pred)
     df_c_m = pd.DataFrame(c_m_array, index = labels, columns = labels)
     heatmap = sn.heatmap(df_c_m, annot=True, cmap='coolwarm', linecolor='white', linewidths=1)
     figure = heatmap.get_figure()
@@ -383,20 +379,20 @@ def Plot_confusion_matrix(pred, true, labels, name):
 
 def Error_analysis(p_p, p_t, p_s, f_p, f_t, f_s):
     error_hash_map = {"['0' '1']":0, "['0' '2']":1, "['1' '0']":2, "['1' '2']":3, "['2' '0']":4, "['2' '1']":5}
-    error_matrix_index = ['POS->NEU', 'POS->NEG', 'NEU->POS', 'NEU->NEG', 'NEG->POS', 'NEG-NEU']
+    error_matrix_index = ['POS->NEU', 'POS->NEG', 'NEU->POS', 'NEU->NEG', 'NEG->POS', 'NEG->NEU']
     error_matrix_column = ['EXP->OPI', 'EXP->FAC', 'OPI->EXP', 'OPI->FAC', 'FAC->EXP', 'FAC->OPI']
     error_m_row = []
     error_m_column = []
 
     p_array = np.array([p_p, p_t, p_s])
-    print ("p_array shape: ", str(p_array.shape))
+    #print ("p_array shape: ", str(p_array.shape))
     f_array = np.array([f_p, f_t, f_s])
-    print ("f_array shape: ", str(f_array.shape))
+    #print ("f_array shape: ", str(f_array.shape))
 
     p_array = p_array[:, p_array[0,:]!=p_array[1,:]]
-    print ("new p_array shape: ", str(p_array.shape))
+    #print ("new p_array shape: ", str(p_array.shape))
     f_array = f_array[:, f_array[0,:]!=f_array[1,:]]
-    print ("new f_array shape: ", str(f_array.shape))
+    #print ("new f_array shape: ", str(f_array.shape))
 
     for col in range(p_array.shape[1]):
         if p_array[2, col] in f_array[2,:]:
@@ -404,14 +400,12 @@ def Error_analysis(p_p, p_t, p_s, f_p, f_t, f_s):
                 continue
             error_m_row.append(error_hash_map[str(p_array[:2, col])])
             error_m_column.append(error_hash_map[str(f_array[:2, f_array[2, :]==p_array[2,col]].T[0])])
-    print ('error_m_row: ', error_m_row)
-    print ('error_m_column: ', error_m_column)
+    #print ('error_m_row: ', error_m_row)
+    #print ('error_m_column: ', error_m_column)
 
     error_array = confusion_matrix(error_m_row, error_m_column)
     df_error_m = pd.DataFrame(error_array, index = error_matrix_index, columns = error_matrix_column)
     err_heat_map = sn.heatmap(df_error_m, annot=True)
-#    err_heat_map.set_xlabel(fontsize=20)
-#    err_heat_map.set_ylabel(fontsize=20)
     err_heat_map.tick_params(axis = 'x', which = 'major', labelsize=6)
     err_heat_map.tick_params(axis = 'y', which = 'major', labelsize=9)
     figure_error = err_heat_map.get_figure()
@@ -433,7 +427,6 @@ if __name__ == '__main__':
 
     factuality_pred, factuality_true, factuality_sen = Classify(factuality_dict, base_model_path, f_tag2idx)
     Plot_confusion_matrix(factuality_pred, factuality_true, ["EXPERIENCE", "OPINION", "FACT"], 'factuality')
-    #with open('./xlnet_out_dir/polarity.txt', 'w') as f:
-    #    p_array = np.array([polarity_pred, polarity_true, polarity_sen])
+
     Error_analysis(polarity_pred, polarity_true, polarity_sen, factuality_pred, factuality_true, factuality_sen)
 
