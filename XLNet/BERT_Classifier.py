@@ -363,8 +363,13 @@ def Classify(Dataset_dict, base_model_path, tag2idx, use_3=True, use_5=True):
 def Plot_confusion_matrix(pred, true, labels, name):
     c_m_array = confusion_matrix(true, pred)
     df_c_m = pd.DataFrame(c_m_array, index = labels, columns = labels)
-    heatmap = sn.heatmap(df_c_m, annot=True, cmap='coolwarm', linecolor='white', linewidths=1)
+    heatmap = sn.heatmap(df_c_m, annot=True, fmt='d', cmap='Blues', linecolor='white', linewidths=1, cbar_kws={'label': 'number of predicted labels on expected labels'})
+    heatmap.tick_params(axis = 'x', which = 'major', labelsize=8)
+    heatmap.tick_params(axis = 'y', which = 'major', labelsize=8)
     figure = heatmap.get_figure()
+    plt.xlabel('Predicted labels', fontsize = 12)
+    plt.ylabel('True labels', fontsize = 12)
+    plt.tight_layout()
     figure.savefig('BERT_%s.png' % name, dpi=400)
     plt.close()
 
@@ -386,10 +391,14 @@ def Error_analysis(p_p, p_t, p_s, f_p, f_t, f_s):
             error_m_column.append(error_hash_map[str(f_array[:2, f_array[2, :]==p_array[2,col]].T[0])])
     error_array = confusion_matrix(error_m_row, error_m_column)
     df_error_m = pd.DataFrame(error_array, index = error_matrix_index, columns = error_matrix_column)
-    err_heat_map = sn.heatmap(df_error_m, annot=True)
-    err_heat_map.tick_params(axis = 'x', which = 'major', labelsize=6)
-    err_heat_map.tick_params(axis = 'y', which = 'major', labelsize=9)
+
+    err_heat_map = sn.heatmap(df_error_m, annot=True, fmt='d', linecolor='white', linewidth=1, cbar_kws={'label': 'number of sentences misclassified in both two datasets'})
+    err_heat_map.tick_params(axis = 'x', which = 'major', labelsize=8)
+    err_heat_map.tick_params(axis = 'y', which = 'major', labelsize=8)
     figure_error = err_heat_map.get_figure()
+    plt.xlabel('Misclassified factuality sentences', fontsize = 12)
+    plt.ylabel('Misclassified polarity sentences', fontsize = 12)
+    plt.tight_layout()
     figure_error.savefig('BERT_error_matrix.png', dpi = 500)
     plt.close()
 
