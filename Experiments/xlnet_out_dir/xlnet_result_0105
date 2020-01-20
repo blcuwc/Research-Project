@@ -1,0 +1,228 @@
+No.:0
+sentence: Hi, Iam 34years old & my sonography says Solid cystic complex cyst noted in 6 o clock position in retroareolar region in left breast measuring 19*18mm & left axillary lymphadenopathy.
+input_ids:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4036, 19, 35, 1199, 3422, 295, 23, 532, 1123, 94, 966, 6336, 349, 20975, 17, 19616, 556, 1881, 17, 19616, 1699, 25, 284, 17, 155, 5135, 740, 25, 20848, 4895, 155, 4225, 653, 25, 263, 4855, 10602, 1029, 8652, 1010, 2828, 1123, 263, 24, 469, 28107, 23201, 101, 1426, 24591, 9, 4, 3]
+attention_masks:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+segment_ids:[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+
+
+1
+No.:0
+sentence: hi, my doctor has come to the conclusion i have IBS after not showing any signs of chrons in a colonoscopy test.
+input_ids:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 2582, 19, 94, 2223, 51, 280, 22, 18, 5699, 17, 150, 47, 35, 7096, 99, 50, 2343, 124, 2832, 20, 17, 20276, 23, 25, 24, 10745, 28839, 934, 9, 4, 3]
+attention_masks:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+segment_ids:[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+
+
+0
+No.:0
+sentence: I have been a coffee drinker on and off since I was little.
+input_ids:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 47, 72, 24, 2877, 3347, 118, 31, 21, 177, 196, 35, 30, 293, 9, 4, 3]
+attention_masks:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+segment_ids:[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+
+
+1
+No.:0
+sentence: hi, my doctor has come to the conclusion i have IBS after not showing any signs of chrons in a colonoscopy test.
+input_ids:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 2582, 19, 94, 2223, 51, 280, 22, 18, 5699, 17, 150, 47, 35, 7096, 99, 50, 2343, 124, 2832, 20, 17, 20276, 23, 25, 24, 10745, 28839, 934, 9, 4, 3]
+attention_masks:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+segment_ids:[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+
+
+2
+No.:0
+sentence: Hi, Iam 34years old & my sonography says Solid cystic complex cyst noted in 6 o clock position in retroareolar region in left breast measuring 19*18mm & left axillary lymphadenopathy.
+input_ids:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4036, 19, 35, 1199, 3422, 295, 23, 532, 1123, 94, 966, 6336, 349, 20975, 17, 19616, 556, 1881, 17, 19616, 1699, 25, 284, 17, 155, 5135, 740, 25, 20848, 4895, 155, 4225, 653, 25, 263, 4855, 10602, 1029, 8652, 1010, 2828, 1123, 263, 24, 469, 28107, 23201, 101, 1426, 24591, 9, 4, 3]
+attention_masks:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+segment_ids:[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+
+
+0
+No.:0
+sentence: I have been a coffee drinker on and off since I was little.
+input_ids:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 47, 72, 24, 2877, 3347, 118, 31, 21, 177, 196, 35, 30, 293, 9, 4, 3]
+attention_masks:[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+segment_ids:[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+
+
+0
+======== Train Datasets: HIF2016_DIS00_polarity.tsv HIF2016_DIS01_polarity.tsv
+======== Test Dataset: HIF2016_DIS02_polarity.tsv
+========== Running training ==========
+  Num examples = 2583
+  Batch size = 32
+  Num steps = 81
+Train loss: 0.8080496087670326
+========== Running evaluation ==========
+  Num examples =864
+  Batch size = 32
+========== Test results ==========
+  eval_accuracy = 0.7604166666666666
+  eval_loss = 0.6273853072413692
+  loss = 0.8080496087670326
+              precision    recall  f1-score   support
+
+           0       0.66      0.88      0.75       171
+           1       0.86      0.73      0.79       477
+           2       0.69      0.75      0.72       216
+
+   micro avg       0.76      0.76      0.76       864
+   macro avg       0.74      0.78      0.75       864
+weighted avg       0.78      0.76      0.76       864
+
+
+
+len pred:  864
+len true:  864
+len sen:  864
+======== Train Datasets: HIF2016_DIS02_polarity.tsv HIF2016_DIS01_polarity.tsv
+======== Test Dataset: HIF2016_DIS00_polarity.tsv
+========== Running training ==========
+  Num examples = 2492
+  Batch size = 32
+  Num steps = 78
+Train loss: 0.9602134800576544
+========== Running evaluation ==========
+  Num examples =955
+  Batch size = 32
+========== Test results ==========
+  eval_accuracy = 0.7172774869109948
+  eval_loss = 0.6505537778139114
+  loss = 0.9602134800576544
+              precision    recall  f1-score   support
+
+           0       0.84      0.41      0.55       162
+           1       0.68      0.92      0.78       499
+           2       0.78      0.55      0.64       294
+
+   micro avg       0.72      0.72      0.72       955
+   macro avg       0.77      0.62      0.66       955
+weighted avg       0.74      0.72      0.70       955
+
+
+
+len pred:  1819
+len true:  1819
+len sen:  1819
+======== Train Datasets: HIF2016_DIS02_polarity.tsv HIF2016_DIS00_polarity.tsv
+======== Test Dataset: HIF2016_DIS01_polarity.tsv
+========== Running training ==========
+  Num examples = 1819
+  Batch size = 32
+  Num steps = 57
+Train loss: 0.9191683935267585
+========== Running evaluation ==========
+  Num examples =1628
+  Batch size = 32
+========== Test results ==========
+  eval_accuracy = 0.7008599508599509
+  eval_loss = 0.6944771502532211
+  loss = 0.9191683935267585
+              precision    recall  f1-score   support
+
+           0       0.67      0.63      0.65       302
+           1       0.73      0.66      0.70       712
+           2       0.69      0.78      0.73       614
+
+   micro avg       0.70      0.70      0.70      1628
+   macro avg       0.70      0.69      0.69      1628
+weighted avg       0.70      0.70      0.70      1628
+
+
+
+len pred:  3447
+len true:  3447
+len sen:  3447
+======== Train Datasets: HIF2016_DIS02_factuality.tsv HIF2016_DIS00_factuality.tsv
+======== Test Dataset: HIF2016_DIS01_factuality.tsv
+========== Running training ==========
+  Num examples = 1699
+  Batch size = 32
+  Num steps = 54
+Train loss: 0.9390022540992161
+========== Running evaluation ==========
+  Num examples =1593
+  Batch size = 32
+========== Test results ==========
+  eval_accuracy = 0.7934714375392341
+  eval_loss = 0.5169244393706321
+  loss = 0.9390022540992161
+              precision    recall  f1-score   support
+
+           0       0.84      0.95      0.89       931
+           1       0.77      0.63      0.69       389
+           2       0.60      0.49      0.54       273
+
+   micro avg       0.79      0.79      0.79      1593
+   macro avg       0.74      0.69      0.71      1593
+weighted avg       0.78      0.79      0.78      1593
+
+
+
+len pred:  1593
+len true:  1593
+len sen:  1593
+======== Train Datasets: HIF2016_DIS01_factuality.tsv HIF2016_DIS00_factuality.tsv
+======== Test Dataset: HIF2016_DIS02_factuality.tsv
+========== Running training ==========
+  Num examples = 2479
+  Batch size = 32
+  Num steps = 78
+Train loss: 0.7199306309997261
+========== Running evaluation ==========
+  Num examples =813
+  Batch size = 32
+========== Test results ==========
+  eval_accuracy = 0.7355473554735548
+  eval_loss = 0.6613779606727453
+  loss = 0.7199306309997261
+              precision    recall  f1-score   support
+
+           0       0.81      0.83      0.82       278
+           1       0.67      0.88      0.76       310
+           2       0.77      0.42      0.54       225
+
+   micro avg       0.74      0.74      0.74       813
+   macro avg       0.75      0.71      0.71       813
+weighted avg       0.75      0.74      0.72       813
+
+
+
+len pred:  2406
+len true:  2406
+len sen:  2406
+======== Train Datasets: HIF2016_DIS01_factuality.tsv HIF2016_DIS02_factuality.tsv
+======== Test Dataset: HIF2016_DIS00_factuality.tsv
+========== Running training ==========
+  Num examples = 2406
+  Batch size = 32
+  Num steps = 76
+Train loss: 0.7533821133772532
+========== Running evaluation ==========
+  Num examples =886
+  Batch size = 32
+========== Test results ==========
+  eval_accuracy = 0.7099322799097065
+  eval_loss = 0.7437552607485226
+  loss = 0.7533821133772532
+              precision    recall  f1-score   support
+
+           0       0.71      0.91      0.80       348
+           1       0.75      0.65      0.70       271
+           2       0.66      0.51      0.58       267
+
+   micro avg       0.71      0.71      0.71       886
+   macro avg       0.71      0.69      0.69       886
+weighted avg       0.71      0.71      0.70       886
+
+
+
+len pred:  3292
+len true:  3292
+len sen:  3292
+p_array shape:  (3, 3447)
+f_array shape:  (3, 3292)
+new p_array shape:  (3, 964)
+new f_array shape:  (3, 801)
+error_m_row:  [5, 3, 3, 2, 5, 2, 5, 0, 3, 5, 3, 5, 3, 5, 5, 3, 5, 0, 5, 5, 5, 5, 5, 0, 0, 0, 5, 3, 2, 0, 3, 3, 2, 0, 5, 3, 5, 5, 0, 3, 0, 5, 5, 0, 1, 0, 0, 5, 0, 1, 0, 0, 3, 3, 2, 3, 3, 3, 3, 0, 1, 3, 2, 3, 2, 2, 3, 3, 3, 3, 4, 3, 3, 3, 5, 3, 3, 0, 2, 0, 3, 3, 1, 3, 3, 5, 5, 3, 2, 2, 5, 3, 5, 2, 2, 3, 3, 2, 3, 2, 2, 3, 2, 2, 3, 3, 3, 2, 3, 3, 5, 3, 1, 3, 3, 3, 2, 2, 3, 0, 3, 3, 3, 0, 5, 3, 5, 5, 5, 0, 0, 5, 5, 4, 5, 0, 5, 2, 0, 3, 0, 2, 3, 2, 3, 0, 1, 2, 2, 4, 5, 3, 3, 5, 3, 5, 3, 5, 3, 3, 5, 0, 0, 0, 5, 3, 1, 5, 1, 3, 5, 5, 0, 2, 5, 5, 2, 5, 5, 0, 4, 2, 4, 3, 2, 5, 0, 3, 2, 0, 5, 0, 5, 5, 2, 4, 5, 0, 5, 5, 2, 5, 0, 5, 5, 5, 5, 5, 3, 3, 4, 2, 5, 2, 0, 0, 0, 5, 1, 2, 5, 5, 0, 3, 5, 0, 5]
+error_m_column:  [3, 2, 2, 0, 1, 2, 1, 5, 2, 5, 3, 3, 4, 3, 1, 5, 3, 3, 0, 1, 3, 3, 1, 1, 2, 0, 3, 3, 3, 0, 5, 1, 3, 3, 1, 2, 3, 3, 0, 3, 3, 3, 3, 3, 0, 3, 3, 3, 3, 3, 3, 3, 0, 3, 5, 5, 3, 1, 1, 0, 3, 1, 1, 1, 1, 0, 5, 4, 5, 5, 2, 0, 1, 4, 1, 2, 3, 4, 0, 1, 5, 5, 0, 5, 1, 1, 1, 2, 0, 5, 4, 4, 4, 5, 5, 4, 0, 0, 1, 0, 1, 4, 1, 1, 5, 2, 5, 2, 1, 4, 3, 5, 1, 3, 3, 0, 5, 0, 3, 2, 0, 1, 1, 4, 0, 5, 1, 1, 1, 2, 2, 1, 1, 0, 1, 3, 2, 0, 3, 2, 2, 4, 4, 3, 4, 3, 4, 5, 1, 0, 1, 3, 3, 1, 3, 1, 3, 5, 5, 3, 1, 5, 5, 3, 1, 4, 2, 2, 2, 5, 0, 0, 3, 2, 2, 1, 5, 4, 2, 1, 0, 0, 0, 2, 0, 1, 3, 5, 5, 5, 1, 3, 1, 0, 2, 0, 1, 0, 3, 3, 4, 5, 5, 1, 0, 1, 1, 0, 0, 5, 0, 0, 1, 5, 3, 1, 1, 1, 0, 0, 0, 1, 5, 1, 1, 5, 1]
