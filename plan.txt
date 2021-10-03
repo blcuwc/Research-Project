@@ -1,8 +1,0 @@
-4th Nov - 10th Nov, Install PyTorch and run Transformer successfully;
-11th Nov - 17th Nov, finish related work part;
-18th Nov - 24th Nov, use various classifiers to experiment;
-25th Nov - 1st Dec, analyze experiment results and make some adjustments;
-2nd Nov - 8th Dec, write experiment  and analysis part;
-9th Dec - 15th Dec, finish first version of report.
-
-
